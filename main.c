@@ -1,3 +1,36 @@
+/*
+ * ------------------------------------------------------------
+ * Nome: Processador de Imagem PGM com Dithering Floyd-Steinberg
+ *
+ * Descrição:
+ * Este programa lê uma imagem no formato PGM (P2 - ASCII),
+ * aplica o algoritmo de dithering de Floyd-Steinberg e gera
+ * uma imagem binarizada (preto e branco).
+ *
+ * Uso:
+ * ./processar_imagem entrada.pgm saida.pgm
+ *
+ * Entrada:
+ * - Arquivo PGM (P2 ASCII), 89x89, valores de 0 a 255
+ *
+ * Saída:
+ * - Arquivo PGM (P2 ASCII), binarizado (0 ou 255)
+ *
+ * Autor(es):
+ * Guilherme Mariano Freire Bezerra
+ * Laura Kida
+ *
+ * Data:
+ * Abril de 2026
+ *
+ * Contexto:
+ * Trabalho acadêmico - processamento de imagens / sistemas embarcados
+ *
+ * Plataforma alvo:
+ * Simulação desktop / possível adaptação para embarcados
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -10,10 +43,19 @@
 // O uso do unsigned foi mantido pelo fato de que a precisão não foi afetada de forma alguma
 // O uso do unsigned permitiu grande economia apesar de ficar bem abaixo do limiar estabelicido de 8k de memória
 // Unsigned char se encaixa perfeitamente para o nosso caso, pois ele tem valor de 1byte ( 8bits ) 0 a 255
+/*
+ * Buffer da imagem em escala de cinza.
+ * Tamanho fixo: 89x89 pixels.
+ * Cada pixel varia de 0 a 255.
+ */
 static unsigned char img_buffer[IMG_W * IMG_H];
 // Aqui declara-se o vetor de erros, estamos usando o tipo short ( apesar de haver a possibilidade de usar o tipo int )
 // Mantivemos o vetor desse tipo pelo fato de que não seria necessário armazenar erros maiores que 255 ou menores que -255
 // No caso Short é metade do tamanho da int ( 2bytes vs 4bytes )
+/*
+ * Vetor auxiliar para propagação de erro do algoritmo.
+ * Armazena erros acumulados por coluna.
+ */
 static short errors[IMG_W + 1];
 // Essa é uma linha importante para evitar repetir código mais a frente. 
 // O uso desse macro nos permite definir os boundaries dos valores possíveis para nossos pixels
@@ -21,6 +63,24 @@ static short errors[IMG_W + 1];
 // Aqui está a função importante
 // Ela foi modularizada para se comportar de forma independente ( Como neste código estamos usando fin fout, se estivessemos
 // em um embarcado lendo de uma porta serial ela não seria afetada
+/*
+ * Função: apply_floyd_steinberg
+ *
+ * Descrição:
+ * Aplica o algoritmo de dithering de Floyd-Steinberg
+ * sobre o buffer global de imagem.
+ *
+ * Parâmetros:
+ * - width: largura da imagem
+ * - height: altura da imagem
+ *
+ * Retorno:
+ * - void
+ *
+ * Efeitos colaterais:
+ * - Modifica o vetor global img_buffer
+ * - Utiliza e altera o vetor global errors
+ */
 static void apply_floyd_steinberg(int width, int height) {
     int x, y;
 
@@ -59,6 +119,21 @@ static void apply_floyd_steinberg(int width, int height) {
 }
 
 // Função auxiliar para elimnar possíveis comentarios no PGM
+/*
+ * Função: pular_comentarios
+ *
+ * Descrição:
+ * Ignora comentários e espaços em branco no arquivo PGM.
+ *
+ * Parâmetros:
+ * - f: ponteiro para arquivo aberto
+ *
+ * Retorno:
+ * - void
+ *
+ * Efeitos colaterais:
+ * - Avança o cursor do arquivo
+ */
 static void pular_comentarios(FILE *f) {
     int ch;
     while ((ch = fgetc(f)) != EOF) {
