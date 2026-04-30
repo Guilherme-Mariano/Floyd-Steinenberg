@@ -6,11 +6,21 @@
 #define IMG_W 89
 #define IMG_H 89
 
+// Estamos usando unsigned char ( o resultado prático é uma variável menor que o int sugerido nas especificações )
+// O uso do unsigned foi mantido pelo fato de que a precisão não foi afetada de forma alguma
+// O uso do unsigned permitiu grande economia apesar de ficar bem abaixo do limiar estabelicido de 8k de memória
+// Unsigned char se encaixa perfeitamente para o nosso caso, pois ele tem valor de 1byte ( 8bits ) 0 a 255
 static unsigned char img_buffer[IMG_W * IMG_H];
+// Aqui declara-se o vetor de erros, estamos usando o tipo short ( apesar de haver a possibilidade de usar o tipo int )
+// Mantivemos o vetor desse tipo pelo fato de que não seria necessário armazenar erros maiores que 255 ou menores que -255
+// No caso Short é metade do tamanho da int ( 2bytes vs 4bytes )
 static short errors[IMG_W + 1];
-
+// Essa é uma linha importante para evitar repetir código mais a frente. 
+// O uso desse macro nos permite definir os boundaries dos valores possíveis para nossos pixels
 #define CLIP8(v) ((v) <= 0 ? 0 : ((v) >= 255 ? 255 : (v)))
-
+// Aqui está a função importante
+// Ela foi modularizada para se comportar de forma independente ( Como neste código estamos usando fin fout, se estivessemos
+// em um embarcado lendo de uma porta serial ela não seria afetada
 static void apply_floyd_steinberg(int width, int height) {
     int x, y;
 
@@ -28,6 +38,8 @@ static void apply_floyd_steinberg(int width, int height) {
         l1 = 0;
 
         for (x = 0; x < width; x++) {
+            // Estamos dando um cast (int) do pixel que estava em formato unsigned char
+            // Ele sera adicionado ao erro fracionado ( esse erro pode ser negativo )
             l = CLIP8((int)row[x] + (l + (int)errors[x + 1]) / 16);
             outv = (l > 128) ? 255 : 0;
             row[x] = outv;
@@ -46,6 +58,7 @@ static void apply_floyd_steinberg(int width, int height) {
     }
 }
 
+// Função auxiliar para elimnar possíveis comentarios no PGM
 static void pular_comentarios(FILE *f) {
     int ch;
     while ((ch = fgetc(f)) != EOF) {
@@ -58,6 +71,7 @@ static void pular_comentarios(FILE *f) {
     }
 }
 
+// Função MAIN, tratando de ler os arquivos e chamar as rotinas
 int main(int argc, char *argv[]) {
     FILE *fin, *fout;
     char p2[3];
