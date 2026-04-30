@@ -10,14 +10,24 @@ from PIL import Image, ImageFilter
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # --- CONFIGURAÇÕES DO AMBIENTE ---
+# Aqui vamos colocar a pasta de entrada ( onde estão todas as imagens para teste )
 DIR_ORIG = "estatuas_pgm"
+# Aqui é onde vamos guardar as imagens que foram processadas pelo nosso código C
 DIR_C = "estatuas_saida_c"
+# Aqui é onde estão as imagens que foram geradas pelo PILLOW
+# Esse código assume que o diretório já está populado
+# Caso não esteja, por favor usar o código gerar_ground_truth.py
 DIR_PILLOW = "estatuas_pillow"
+# Esse script ira compilar nosso código, logo é importante dizer o nome dele nesta variável
+# A escolha de adicionar a etapa de compilação a esse pipeline automático, foi para que alterações feitas
+# pudessem ser rapidamente testadas no escopo dos testes automatizados que estão presentes nesse arquivo
 NOME_CODIGO_C = "main.c"
+# O nome que queremos dar ao nosso executável
 NOME_EXECUTAVEL = "processar_imagem"
+# O arquivo que será salvo com todos as estatísticas de desempenho
 NOME_CSV_SAIDA = "relatorio_auditoria.csv"
 
-
+# Função auxliar, apenas plota a matriz pgm
 def visualizar_pgm_no_terminal(caminho_arquivo):
     """Gera uma visualização ASCII rápida da imagem no terminal."""
     try:
@@ -44,7 +54,7 @@ def visualizar_pgm_no_terminal(caminho_arquivo):
     except Exception as e:
         print(f"Erro ao visualizar: {e}")
 
-
+# Função auxliar que lê o pgm
 def ler_payload_pgm(caminho_arq):
     """Lê o payload P2 e retorna lista de pixels inteiros."""
     tokens = []
@@ -57,7 +67,10 @@ def ler_payload_pgm(caminho_arq):
         return [int(x) for x in tokens[4:]]
     raise ValueError(f"Arquivo {caminho_arq} inválido.")
 
-
+# Função que faz parte do pipeline de teste, aqui vamos similar o Sistema Visual Humano
+# Aplicando um filtro passa baixa, tanto na imagem original quanto na processada
+# isso é feito para simular a integração espacial que o olho humano faz ( testando a preservação perceptual
+# que o algorítmo se propõe )
 def calcular_similaridade_perceptual(caminho_orig, caminho_dither):
     """
     Simula o Sistema Visual Humano (HVS) aplicando um Filtro Passa-Baixa
@@ -68,7 +81,7 @@ def calcular_similaridade_perceptual(caminho_orig, caminho_dither):
         img_orig = Image.open(caminho_orig).convert('L')
         img_dither = Image.open(caminho_dither).convert('L')
 
-        # Aplica o Filtro Passa-Baixa (Desfoque Gaussiano com raio 2)
+        # Aplica o Filtro Passa-Baixa (Desfoque Gaussiano com raio 2, esse parâmetro foi escolhido empiracamente)
         # Isso simula a integração espacial que a retina humana faz
         blur_orig = img_orig.filter(ImageFilter.GaussianBlur(radius=2))
         blur_dither = img_dither.filter(ImageFilter.GaussianBlur(radius=2))
