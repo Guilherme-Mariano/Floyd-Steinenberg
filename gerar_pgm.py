@@ -1,6 +1,8 @@
 import os
 from PIL import Image
 
+# Função auxliar que converte imagens em qualquer formato e dimensão para PGM 89x89
+# So é necessário se estatuas_pgm estiver vazia 
 def converter_para_pgm_p2(caminho_entrada, caminho_saida):
     """
     Abre uma imagem qualquer, converte para tons de cinza, FORÇA O REDIMENSIONAMENTO
