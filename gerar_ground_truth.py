@@ -1,6 +1,8 @@
 import os
 from PIL import Image
 
+# Script auxiliar para gerar o ground truth ( gabarito para testes )
+
 def gerar_ground_truth_pillow(caminho_in, caminho_out):
     """
     Gera a imagem de referência usando o algoritmo Floyd-Steinberg
@@ -55,7 +57,6 @@ def processar_ground_truth(dir_in="estatuas_pgm", dir_out="estatuas_pillow"):
     sucessos = 0
     for arquivo in arquivos_pgm:
         caminho_in = os.path.join(dir_in, arquivo)
-        # O padrão que sua auditoria espera: "pillow_nome.pgm"
         caminho_out = os.path.join(dir_out, f"pillow_{arquivo}")
 
         if gerar_ground_truth_pillow(caminho_in, caminho_out):
